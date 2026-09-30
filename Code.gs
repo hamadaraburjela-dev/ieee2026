@@ -5,7 +5,7 @@ const CONFIG = Object.freeze({
   LOGIN_WINDOW_SECONDS: 10 * 60,
   MAX_FAILED_LOGINS: 8,
   // استبدلها بدومين الموقع فقط، دون شرطة مائلة في النهاية.
-  ALLOWED_ORIGIN: 'https://YOUR-DOMAIN.COM',
+  ALLOWED_ORIGIN: 'https://hamadaraburjela-dev.github.io',
   FORM_LINKS: {
     consent: 'https://forms.gle/PystiX718dsEv4zN9',
     groupPayment: 'https://forms.gle/b41YFsyyd5CPAW7C7'
