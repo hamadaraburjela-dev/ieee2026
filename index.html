@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <meta name="description" content="بوابة متابعة حالة فرق IEEEXtreme 20.0" />
+    <title>بوابة فرق IEEEXtreme 20.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%2307111f'/%3E%3Cpath d='M17 18h30v8H27v6h17v8H27v6h20v8H17z' fill='%2300d9ff'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="الصفحة الرئيسية">
+        <span class="brand-mark" aria-hidden="true">X</span>
+        <span>
+          <b>IEEEXtreme <em>20.0</em></b>
+          <small>بوابة متابعة الفرق</small>
+        </span>
+      </a>
+      <button id="logoutButton" class="ghost-button hidden" type="button">تسجيل الخروج</button>
+    </header>
+
+    <main>
+      <section id="loginView" class="login-view">
+        <div class="login-copy">
+          <p class="eyebrow"><span></span> جاهزون للتحدي</p>
+          <h1>كل متطلبات فريقك،<br /><strong>في مكان واحد.</strong></h1>
+          <p class="intro">تحقق من حالة النماذج ورسوم العضوية لجميع أعضاء فريقك قبل انطلاق المسابقة.</p>
+          <div class="mini-stats" aria-label="مميزات البوابة">
+            <span><b>01</b> دخول آمن</span>
+            <span><b>02</b> تحديث مباشر</span>
+            <span><b>03</b> متوافق مع الجوال</span>
+          </div>
+        </div>
+
+        <div class="login-panel">
+          <div class="panel-heading">
+            <span class="icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M5 10h14v10H5z" /></svg>
+            </span>
+            <div><h2>دخول الفريق</h2><p>أدخل بيانات فريقك للاطلاع على الحالة.</p></div>
+          </div>
+          <form id="loginForm" novalidate>
+            <label for="teamNumber">رقم الفريق</label>
+            <div class="input-wrap">
+              <input id="teamNumber" name="teamNumber" inputmode="numeric" autocomplete="username" placeholder="مثال: 1042" required />
+              <span aria-hidden="true">#</span>
+            </div>
+            <label for="password">الرقم السري</label>
+            <div class="input-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="أدخل الرقم السري الخاص بالفريق" required />
+              <button id="togglePassword" class="input-action" type="button" aria-label="إظهار الرقم السري">
+                <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+              </button>
+            </div>
+            <p id="loginError" class="form-error" role="alert"></p>
+            <button class="primary-button" type="submit"><span>عرض حالة الفريق</span><span aria-hidden="true">←</span></button>
+            <button id="demoButton" class="demo-button hidden" type="button">تجربة نسخة العرض</button>
+          </form>
+          <p class="privacy-note"><span aria-hidden="true">●</span> بيانات فريقك محمية ولا تظهر دون الرقم السري.</p>
+        </div>
+      </section>
+
+      <section id="dashboardView" class="dashboard hidden" aria-live="polite">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow"><span></span> لوحة الفريق</p>
+            <h1>أهلًا بفريق <strong id="teamLabel">—</strong></h1>
+            <p>راجع المتطلبات المتبقية لكل عضو وأكملها قبل المسابقة.</p>
+          </div>
+          <div class="team-number-card"><span>رقم الفريق</span><b id="teamNumberLabel">—</b></div>
+        </div>
+
+        <div id="setupNotice" class="setup-notice hidden" role="status">
+          <b>أنت في وضع المعاينة</b>
+          <span>أضف رابط Google Apps Script في ملف <code>config.js</code> لعرض بيانات الشيت الحقيقية.</span>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-copy"><span>اكتمال متطلبات الفريق</span><b id="progressLabel">0%</b></div>
+          <div class="progress-track"><span id="progressBar"></span></div>
+          <small id="progressDetails">—</small>
+        </div>
+
+        <div class="section-title"><div><span>أعضاء الفريق</span><small id="membersCount">—</small></div><button id="refreshButton" class="refresh-button" type="button">تحديث البيانات</button></div>
+        <div id="membersGrid" class="members-grid"></div>
+      </section>
+    </main>
+
+    <footer><span>IEEEXtreme 20.0</span><span>معًا نحو تجربة مشاركة مكتملة</span></footer>
+
+    <dialog id="emailDialog" class="email-dialog">
+      <form id="emailForm" method="dialog">
+        <button class="dialog-close" value="cancel" aria-label="إغلاق" type="submit">×</button>
+        <span class="icon-box" aria-hidden="true">@</span>
+        <h2>تعديل البريد الإلكتروني</h2>
+        <p id="emailMemberName">—</p>
+        <label for="emailInput">البريد الإلكتروني الجديد</label>
+        <input id="emailInput" type="email" autocomplete="email" required />
+        <p id="emailError" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button type="submit" value="cancel" class="ghost-button">إلغاء</button><button id="saveEmailButton" type="button" class="primary-button">حفظ التعديل</button></div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
