@@ -12,9 +12,9 @@
     teamNumber: "1042",
     teamName: "Binary Falcons",
     members: [
-      { rowNumber: 2, fullNameArabic: "أحمد محمد سليمان", fullNameEnglish: "Ahmad Suleiman", email: "ahmad@example.com", membershipPaymentStatus: "تم الدفع", groupPaymentStatus: "تم تعبئته شكرا لك", consentStatus: "تم تعبئته شكرا لك" },
-      { rowNumber: 3, fullNameArabic: "ليان خالد نصار", fullNameEnglish: "Layan Nassar", email: "layan@example.com", membershipPaymentStatus: "", groupPaymentStatus: "تم تعبئته شكرا لك", consentStatus: "" },
-      { rowNumber: 4, fullNameArabic: "يزن علي درويش", fullNameEnglish: "Yazan Darwish", email: "yazan@example.com", membershipPaymentStatus: "", groupPaymentStatus: "", consentStatus: "تم تعبئته شكرا لك" }
+      { rowNumber: 2, fullNameArabic: "أحمد محمد سليمان", fullNameEnglish: "Ahmad Suleiman", email: "ahmad@example.com", shirtSize: "L", membershipPaymentStatus: "تم الدفع", groupPaymentStatus: "تم تعبئته شكرا لك", consentStatus: "تم تعبئته شكرا لك" },
+      { rowNumber: 3, fullNameArabic: "ليان خالد نصار", fullNameEnglish: "Layan Nassar", email: "layan@example.com", shirtSize: "", membershipPaymentStatus: "", groupPaymentStatus: "تم تعبئته شكرا لك", consentStatus: "" },
+      { rowNumber: 4, fullNameArabic: "يزن علي درويش", fullNameEnglish: "Yazan Darwish", email: "yazan@example.com", shirtSize: "XL", membershipPaymentStatus: "", groupPaymentStatus: "", consentStatus: "تم تعبئته شكرا لك" }
     ]
   };
 
@@ -43,11 +43,25 @@
 
   async function api(payload) {
     if (!CONFIG.API_URL) throw new Error("DEMO_MODE");
-    const response = await fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload), redirect: "follow" });
-    if (!response.ok) throw new Error("تعذر الاتصال بالخادم. حاول مرة أخرى.");
-    const result = await response.json();
-    if (!result.ok) throw new Error(result.message || "تعذر إتمام الطلب.");
-    return result.data;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 13000);
+    try {
+      const response = await fetch(CONFIG.API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result) throw new Error(result?.message || "تعذر الاتصال بالخادم. حاول مرة أخرى.");
+      if (!result.ok) throw new Error(result.message || "تعذر إتمام الطلب.");
+      return result.data;
+    } catch (error) {
+      if (error.name === "AbortError") throw new Error("الاتصال بالشيت أبطأ من المعتاد. حاول مرة أخرى بعد لحظات.");
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
   }
 
   function setLoading(button, active, text) {
@@ -71,12 +85,17 @@
     return `<div class="requirement"><div class="requirement-title"><b>${title}</b><span class="status ${done ? "done" : "pending"}">${done ? "مكتمل" : "مطلوب"}</span></div>${done ? '<p class="done-message">تم تعبئته، شكرًا لك.</p>' : `${extra}<a class="action-link ${extraClass}" href="${href}" target="_blank" rel="noopener">${actionText}</a>`}</div>`;
   }
 
+  function shirtSizeOptions(currentSize) {
+    const current = String(currentSize || "").toUpperCase();
+    return ['<option value="">اختر المقاس</option>', ...["XS", "S", "M", "L", "XL", "2XL", "3XL"].map((size) => `<option value="${size}" ${current === size ? "selected" : ""}>${size}</option>`)].join("");
+  }
+
   function renderMember(member, index) {
     // حسب المطلوب: وجود أي قيمة في خانة رسوم العضوية يعني أن الدفع مسجّل.
     const membershipDone = Boolean(normalized(member.membershipPaymentStatus));
     const groupDone = isComplete(member.groupPaymentStatus);
     const consentDone = isComplete(member.consentStatus);
-    return `<article class="member-card" style="animation-delay:${index * 70}ms"><div class="member-head"><div class="avatar">${escapeHtml(initials(member.fullNameArabic || member.fullNameEnglish))}</div><div><h2>${escapeHtml(member.fullNameArabic || member.fullNameEnglish || "عضو الفريق")}</h2><p>${escapeHtml(member.fullNameEnglish || "")}</p></div></div><div class="email-row"><span title="${escapeHtml(member.email)}">${escapeHtml(member.email || "لم يُضف بريد إلكتروني")}</span><button type="button" data-edit-email="${index}">تعديل البريد</button></div><div class="requirements">${requirement("ورقة عدم الممانعة", consentDone, "تعبئة نموذج عدم الممانعة", LINKS.consent)}${requirement("رابط الدفع الجماعي", groupDone, "تعبئة نموذج الدفع الجماعي", LINKS.groupPayment)}${requirement("رسوم عضوية IEEE", membershipDone, "تأكيد الدفع عبر واتساب", whatsAppUrl(member), '<p class="payment-info">حوّل <b>43 شيكل</b> إلى <b>0592210941</b> عبر جوال باي أو بال باي.</p>', "whatsapp")}</div></article>`;
+    return `<article class="member-card" style="animation-delay:${index * 70}ms"><div class="member-head"><div class="avatar">${escapeHtml(initials(member.fullNameArabic || member.fullNameEnglish))}</div><div><h2>${escapeHtml(member.fullNameArabic || member.fullNameEnglish || "عضو الفريق")}</h2><p>${escapeHtml(member.fullNameEnglish || "")}</p></div></div><div class="email-row"><span title="${escapeHtml(member.email)}">${escapeHtml(member.email || "لم يُضف بريد إلكتروني")}</span><button type="button" data-edit-email="${index}">تعديل البريد</button></div><div class="shirt-size-row"><label for="shirt-size-${index}"><span>مقاس التيشيرت</span><small>يُحفظ تلقائيًا</small></label><div class="select-wrap"><select id="shirt-size-${index}" data-shirt-size="${index}" aria-label="مقاس تيشيرت ${escapeHtml(member.fullNameArabic || member.fullNameEnglish)}">${shirtSizeOptions(member.shirtSize)}</select></div></div><div class="requirements">${requirement("ورقة عدم الممانعة", consentDone, "تعبئة نموذج عدم الممانعة", LINKS.consent)}${requirement("رابط الدفع الجماعي", groupDone, "تعبئة نموذج الدفع الجماعي", LINKS.groupPayment)}${requirement("رسوم عضوية IEEE", membershipDone, "تأكيد الدفع عبر واتساب", whatsAppUrl(member), '<p class="payment-info">حوّل <b>43 شيكل</b> إلى <b>0592210941</b> عبر جوال باي أو بال باي.</p>', "whatsapp")}</div></article>`;
   }
 
   function renderDashboard(data) {
@@ -139,6 +158,23 @@
     els.emailInput.value = editingMember.email || "";
     els.emailError.textContent = "";
     els.emailDialog.showModal();
+  });
+  els.membersGrid.addEventListener("change", async (event) => {
+    const select = event.target.closest("[data-shirt-size]");
+    if (!select || !select.value || !session) return;
+    const member = session.data.members[Number(select.dataset.shirtSize)];
+    const previousSize = member.shirtSize || "";
+    select.disabled = true;
+    try {
+      if (!session.demo) await api({ action: "updateShirtSize", teamNumber: session.teamNumber, password: session.password, rowNumber: member.rowNumber, shirtSize: select.value });
+      member.shirtSize = select.value;
+      showToast(`تم حفظ مقاس ${member.fullNameArabic || member.fullNameEnglish}: ${select.value}`);
+    } catch (error) {
+      select.value = previousSize;
+      showToast(error.message);
+    } finally {
+      select.disabled = false;
+    }
   });
   els.saveEmailButton.addEventListener("click", async () => {
     const email = els.emailInput.value.trim();

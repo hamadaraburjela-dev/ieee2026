@@ -1,4 +1,4 @@
-// ألصق رابط تطبيق Google Apps Script بين علامتي الاقتباس ثم احفظ الملف.
+// الطلبات تمر عبر Vercel لتجنب بطء وحجب الاتصال المباشر بـ Google Apps Script.
 window.EXTREME_CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyywsMcePqM3uk7TCI5937c8emxaSXvPVNevw3QhtJAYpN7PNFmRU4Zva5ZG6gR-_c/exec"
+  API_URL: "/api/team"
 };

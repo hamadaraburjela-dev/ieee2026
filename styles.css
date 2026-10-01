@@ -94,6 +94,16 @@ footer { position: relative; z-index: 1; width: min(1180px, calc(100% - 40px)); 
 .email-row { padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.018); border-bottom: 1px solid var(--line); }
 .email-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: ltr; color: #b8c9d9; white-space: nowrap; font-size: 12px; }
 .email-row button { flex: 0 0 auto; color: var(--cyan-2); background: transparent; border: 0; cursor: pointer; font-size: 12px; }
+.shirt-size-row { padding: 15px 22px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--line); background: rgba(0,217,255,.025); }
+.shirt-size-row label { margin: 0; }
+.shirt-size-row label span, .shirt-size-row label small { display: block; }
+.shirt-size-row label span { color: #dcebf7; font-size: 13px; font-weight: 700; }
+.shirt-size-row label small { margin-top: 1px; color: var(--muted); font-size: 10px; font-weight: 400; }
+.select-wrap { position: relative; min-width: 118px; }
+.select-wrap::after { content: "⌄"; position: absolute; left: 12px; top: 50%; color: var(--cyan); transform: translateY(-55%); pointer-events: none; }
+.select-wrap select { width: 100%; min-height: 42px; padding: 0 14px 0 34px; color: var(--text); background: #091827; border: 1px solid rgba(0,217,255,.22); border-radius: 10px; outline: none; appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
+.select-wrap select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,217,255,.08); }
+.select-wrap select:disabled { opacity: .6; cursor: wait; }
 .requirements { padding: 9px 18px 20px; }
 .requirement { padding: 15px 4px; border-bottom: 1px solid var(--line); }
 .requirement:last-child { border-bottom: 0; padding-bottom: 0; }
