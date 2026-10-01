@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgidX6q_UL3B_ooxo7BtrKLeeByD1SnlKArf3ro3_cAdl3tlQDq3ZhA1mA8DLI3pd_/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw_7tk8RqPSLMpcDICWXb5YhAPNUQSevuLmGgo0mVKjt3y_JOJ7XIMLzQdMwqkfS2y/exec";
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
