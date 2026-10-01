@@ -19,7 +19,7 @@
   const percentClass = (percent) => percent === 100 ? "complete" : percent < 50 ? "low" : "medium";
   const formatPercent = (value) => `${Number(value) % 1 === 0 ? Number(value).toFixed(0) : Number(value).toFixed(1)}%`;
   const validEmail = (value) => /^\S+@\S+\.\S+$/.test(String(value || "").trim());
-  const missingRequirements = (member) => [!member.membershipComplete && "رسوم العضوية", !member.groupPaymentComplete && "فورم الدفع الجماعي", !member.consentComplete && "ورقة عدم الممانعة"].filter(Boolean);
+  const missingRequirements = (member) => [!member.membershipComplete && "رسوم العضوية", !member.groupPaymentComplete && "فورم الدفع الجماعي", !member.consentComplete && "ورقة عدم الممانعة", !String(member.shirtSize || "").trim() && "مقاس التيشيرت"].filter(Boolean);
 
   async function api(action, data = {}) {
     const controller = new AbortController();
@@ -83,6 +83,7 @@
     if (audience === "consent") return !member.consentComplete;
     if (audience === "membership") return !member.membershipComplete;
     if (audience === "groupPayment") return !member.groupPaymentComplete;
+    if (audience === "shirtSize") return !String(member.shirtSize || "").trim();
     return missingRequirements(member).length > 0;
   }
 

@@ -77,11 +77,11 @@
     <dialog id="mailDialog" class="admin-dialog mail-dialog">
       <form id="mailForm"><button class="dialog-close" type="button" data-close="mailDialog">×</button><p class="kicker">EMAIL FOLLOW-UP</p><h2>إرسال رسائل المتابعة</h2><p>لن يتم الإرسال إلا للأشخاص المحددين، وستُراجع المتطلبات من الشيت قبل الإرسال.</p>
         <div class="mail-form-layout"><div class="mail-controls">
-          <label>الفئة المستهدفة<select id="mailAudience"><option value="any">عليهم أي متطلب ناقص</option><option value="low">نسبة إنجازهم أقل من 50%</option><option value="consent">ناقص ورقة عدم الممانعة</option><option value="membership">ناقص دفع رسوم العضوية</option><option value="groupPayment">ناقص تعبئة فورم الدفع الجماعي</option></select></label>
+          <label>الفئة المستهدفة<select id="mailAudience"><option value="any">عليهم أي متطلب ناقص</option><option value="low">نسبة إنجازهم أقل من 50%</option><option value="consent">ناقص ورقة عدم الممانعة</option><option value="membership">ناقص دفع رسوم العضوية</option><option value="groupPayment">ناقص تعبئة فورم الدفع الجماعي</option><option value="shirtSize">لم يحددوا مقاس التيشيرت</option></select></label>
           <label>موضوع الرسالة<input id="mailSubject" maxlength="120" value="مطلوب استكمال متطلبات المشاركة في IEEEXtreme 20.0" /></label>
           <label>الموعد النهائي (اختياري)<input id="mailDeadline" type="date" /></label>
           <label>ملاحظة إضافية (اختياري)<textarea id="mailExtraMessage" maxlength="600" placeholder="مثال: نرجو الإنجاز اليوم لضمان اعتماد المشاركة."></textarea></label>
-          <p class="mail-note">سيضاف الاسم ورقم الفريق والمهام الناقصة وروابط النماذج تلقائيًا.</p>
+          <p class="mail-note">سيضاف الاسم ورقم الفريق والرقم السري والمهام الناقصة ورابط الموقع الرسمي تلقائيًا.</p>
         </div><div class="recipient-panel"><div class="recipient-toolbar"><b>الأشخاص المطابقون</b><button id="toggleAllRecipients" type="button">إلغاء تحديد الكل</button></div><div id="recipientList" class="recipient-list"></div><p id="missingEmailNote" class="mail-note warn"></p></div></div>
         <p id="mailError" class="form-error"></p><div class="dialog-actions"><span class="mail-summary">المحددون: <strong id="selectedRecipientCount">0</strong></span><button class="outline-button" type="button" data-close="mailDialog">إلغاء</button><button id="sendMailButton" class="primary-button" type="submit">مراجعة وإرسال الرسائل</button></div>
       </form>
