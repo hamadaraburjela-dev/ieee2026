@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcVXVNSpTM2ETBEd26Zb3tSY51h_uXrV9njdDhivOppY0MWCZvbNtyELuiFX9mc7g/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFW8GvzzeO8PejiFG2hnhy4Q5WCdDbLXujWGeSpHpXOGw3qGwt52r-LYOFx3qqgMum/exec";
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
@@ -9,11 +9,12 @@ export default async function handler(request, response) {
 
   const startedAt = Date.now();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const adminActions = ["adminOverview", "adminUpdateMember", "adminUpdateTeam"];
+  const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
     const payload = typeof request.body === "string" ? JSON.parse(request.body) : request.body;
-    if (!payload || !["login", "updateEmail", "updateShirtSize"].includes(payload.action)) {
+    if (!payload || !["login", "updateEmail", "updateShirtSize", ...adminActions].includes(payload.action)) {
       return response.status(400).json({ ok: false, message: "الطلب غير صحيح." });
     }
 
