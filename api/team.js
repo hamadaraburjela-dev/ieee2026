@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFW8GvzzeO8PejiFG2hnhy4Q5WCdDbLXujWGeSpHpXOGw3qGwt52r-LYOFx3qqgMum/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgidX6q_UL3B_ooxo7BtrKLeeByD1SnlKArf3ro3_cAdl3tlQDq3ZhA1mA8DLI3pd_/exec";
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
@@ -9,7 +9,7 @@ export default async function handler(request, response) {
 
   const startedAt = Date.now();
   const controller = new AbortController();
-  const adminActions = ["adminOverview", "adminUpdateMember", "adminUpdateTeam"];
+  const adminActions = ["adminOverview", "adminUpdateMember", "adminUpdateTeam", "adminCreateMember", "adminDeleteMember", "adminSendReminders"];
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
