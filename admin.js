@@ -2,7 +2,7 @@
   "use strict";
   const API_URL = (window.EXTREME_CONFIG || {}).API_URL || "/api/team";
   const $ = (selector) => document.querySelector(selector);
-  const els = { loginView: $("#loginView"), dashboard: $("#dashboardView"), loginForm: $("#adminLoginForm"), password: $("#adminPassword"), loginError: $("#loginError"), logout: $("#logoutButton"), refresh: $("#refreshButton"), lastUpdated: $("#lastUpdated"), stats: $("#statsGrid"), overallPercent: $("#overallPercent"), overallBar: $("#overallBar"), breakdown: $("#requirementsBreakdown"), attention: $("#attentionList"), shirtSizeStats: $("#shirtSizeStats"), shirtCompletion: $("#shirtCompletion"), registrationDonut: $("#registrationDonut"), officialPercent: $("#officialPercent"), registrationLegend: $("#registrationLegend"), classificationStats: $("#classificationStats"), classifiedCount: $("#classifiedCount"), search: $("#searchInput"), filter: $("#statusFilter"), results: $("#resultsCount"), teams: $("#teamsList"), memberDialog: $("#memberDialog"), memberForm: $("#memberForm"), memberTitle: $("#memberDialogTitle"), memberSubtitle: $("#memberDialogSubtitle"), memberError: $("#memberError"), deleteMember: $("#deleteMemberButton"), teamDialog: $("#teamDialog"), teamForm: $("#teamForm"), teamSubtitle: $("#teamDialogSubtitle"), teamError: $("#teamError"), mailDialog: $("#mailDialog"), mailForm: $("#mailForm"), mailAudience: $("#mailAudience"), mailSubject: $("#mailSubject"), mailDeadline: $("#mailDeadline"), mailExtraMessage: $("#mailExtraMessage"), recipientList: $("#recipientList"), selectedRecipientCount: $("#selectedRecipientCount"), missingEmailNote: $("#missingEmailNote"), mailError: $("#mailError"), toggleAllRecipients: $("#toggleAllRecipients"), toast: $("#toast") };
+  const els = { loginView: $("#loginView"), dashboard: $("#dashboardView"), loginForm: $("#adminLoginForm"), password: $("#adminPassword"), loginError: $("#loginError"), logout: $("#logoutButton"), refresh: $("#refreshButton"), lastUpdated: $("#lastUpdated"), stats: $("#statsGrid"), overallPercent: $("#overallPercent"), overallBar: $("#overallBar"), breakdown: $("#requirementsBreakdown"), attention: $("#attentionList"), shirtSizeStats: $("#shirtSizeStats"), shirtCompletion: $("#shirtCompletion"), registrationDonut: $("#registrationDonut"), officialPercent: $("#officialPercent"), registrationLegend: $("#registrationLegend"), classificationStats: $("#classificationStats"), classifiedCount: $("#classifiedCount"), genderStats: $("#genderStats"), genderTotal: $("#genderTotal"), search: $("#searchInput"), filter: $("#statusFilter"), results: $("#resultsCount"), teams: $("#teamsList"), memberDialog: $("#memberDialog"), memberForm: $("#memberForm"), memberTitle: $("#memberDialogTitle"), memberSubtitle: $("#memberDialogSubtitle"), memberError: $("#memberError"), deleteMember: $("#deleteMemberButton"), teamDialog: $("#teamDialog"), teamForm: $("#teamForm"), teamSubtitle: $("#teamDialogSubtitle"), teamError: $("#teamError"), mailDialog: $("#mailDialog"), mailForm: $("#mailForm"), mailAudience: $("#mailAudience"), mailSubject: $("#mailSubject"), mailDeadline: $("#mailDeadline"), mailExtraMessage: $("#mailExtraMessage"), recipientList: $("#recipientList"), selectedRecipientCount: $("#selectedRecipientCount"), missingEmailNote: $("#missingEmailNote"), mailError: $("#mailError"), toggleAllRecipients: $("#toggleAllRecipients"), mailPreviewDialog: $("#mailPreviewDialog"), mailPreviewMeta: $("#mailPreviewMeta"), mailPreviewFrame: $("#mailPreviewFrame"), mailProgress: $("#mailProgress"), mailProgressText: $("#mailProgressText"), mailProgressPercent: $("#mailProgressPercent"), mailProgressBar: $("#mailProgressBar"), toast: $("#toast") };
   let adminPassword = "";
   let overview = { teams: [], stats: {} };
   let editingMember = null;
@@ -21,9 +21,9 @@
   const validEmail = (value) => /^\S+@\S+\.\S+$/.test(String(value || "").trim());
   const missingRequirements = (member) => [!member.membershipComplete && "رسوم العضوية", !member.groupPaymentComplete && "فورم الدفع الجماعي", !member.consentComplete && "ورقة عدم الممانعة", !String(member.shirtSize || "").trim() && "مقاس التيشيرت"].filter(Boolean);
 
-  async function api(action, data = {}) {
+  async function api(action, data = {}, timeoutMs = 25000) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, adminPassword, ...data }), signal: controller.signal });
       const result = await response.json().catch(() => null);
@@ -69,6 +69,11 @@
     const classified = Number(s.teams || 0) - Number(classifications["غير محدد"] || 0);
     els.classifiedCount.textContent = `${classified}/${Number(s.teams || 0)} مصنّف`;
     els.classificationStats.innerHTML = categoryOrder.map((label) => { const count = Number(classifications[label] || 0); return `<div class="metric-row"><span>${label}</span><i><em style="width:${count / categoryMax * 100}%"></em></i><b>${count}</b></div>`; }).join("");
+    const genders = s.genders || {};
+    const genderOrder = ["طلاب", "طالبات", "غير محدد"];
+    const genderMax = Math.max(1, ...genderOrder.map((label) => Number(genders[label] || 0)));
+    els.genderTotal.textContent = `${Number(s.members || 0)} مشارك`;
+    els.genderStats.innerHTML = genderOrder.map((label) => { const count = Number(genders[label] || 0); return `<div class="metric-row"><span>${label}</span><i><em style="width:${count / genderMax * 100}%"></em></i><b>${count}</b></div>`; }).join("");
   }
 
   function memberRow(member, memberIndex, teamIndex) {
@@ -103,6 +108,8 @@
     if (audience === "membership") return !member.membershipComplete;
     if (audience === "groupPayment") return !member.groupPaymentComplete;
     if (audience === "shirtSize") return !String(member.shirtSize || "").trim();
+    if (audience === "membershipPaid") return member.membershipComplete;
+    if (audience === "complete") return missingRequirements(member).length === 0;
     return missingRequirements(member).length > 0;
   }
 
@@ -129,6 +136,7 @@
 
   function openMailCenter() {
     els.mailError.textContent = "";
+    els.mailProgress.classList.add("hidden");
     renderMailCandidates(true);
     els.mailDialog.showModal();
   }
@@ -156,6 +164,20 @@
   els.mailAudience.addEventListener("change", () => renderMailCandidates(true));
   els.recipientList.addEventListener("change", (event) => { const checkbox = event.target.closest("[data-recipient-row]"); if (!checkbox) return; const rowNumber = Number(checkbox.dataset.recipientRow); if (checkbox.checked) selectedRecipients.add(rowNumber); else selectedRecipients.delete(rowNumber); updateRecipientSummary(); });
   els.toggleAllRecipients.addEventListener("click", () => { const selectable = mailCandidates.filter((member) => validEmail(member.email)); const allSelected = selectable.length && selectedRecipients.size === selectable.length; selectedRecipients = allSelected ? new Set() : new Set(selectable.map((member) => member.rowNumber)); renderMailCandidates(false); });
+  $("#previewMailButton").addEventListener("click", async () => {
+    const rowNumber = [...selectedRecipients][0];
+    els.mailError.textContent = "";
+    if (!rowNumber) { els.mailError.textContent = "اختر شخصًا واحدًا على الأقل لمعاينة رسالته."; return; }
+    const button = $("#previewMailButton");
+    loading(button, true, "جاري تجهيز المعاينة...");
+    try {
+      const preview = await api("adminPreviewReminder", { rowNumber, subject: els.mailSubject.value.trim(), deadline: els.mailDeadline.value, extraMessage: els.mailExtraMessage.value.trim() }, 45000);
+      els.mailPreviewMeta.textContent = `المستلم: ${preview.name} — ${preview.email} — TEAM ${preview.teamNumber}`;
+      els.mailPreviewFrame.srcdoc = preview.html;
+      els.mailPreviewDialog.showModal();
+    } catch (error) { els.mailError.textContent = error.message; }
+    finally { loading(button, false, ""); }
+  });
   els.attention.addEventListener("click", (e) => { const button = e.target.closest("[data-jump-team]"); if (!button) return; els.search.value = button.dataset.jumpTeam; renderTeams(); document.querySelector(".teams-list").scrollIntoView({ behavior: "smooth" }); });
   els.teams.addEventListener("click", (event) => {
     const toggle = event.target.closest("[data-toggle-team]"); if (toggle) { const body = toggle.closest(".team-card").querySelector(".team-members"); body.classList.toggle("collapsed"); toggle.textContent = body.classList.contains("collapsed") ? "عرض الأعضاء" : "إخفاء"; toggle.setAttribute("aria-expanded", !body.classList.contains("collapsed")); return; }
@@ -178,15 +200,25 @@
     if (!confirmed) return;
     const button = $("#sendMailButton");
     loading(button, true, `جاري إرسال 0 من ${rowNumbers.length}...`);
+    els.mailProgress.classList.remove("hidden");
+    els.mailProgressText.textContent = `جاري إرسال 0 من ${rowNumbers.length}`;
+    els.mailProgressPercent.textContent = "0%";
+    els.mailProgressBar.style.width = "0%";
     let sent = 0;
     let skipped = 0;
     try {
-      for (let i = 0; i < rowNumbers.length; i += 10) {
-        const chunk = rowNumbers.slice(i, i + 10);
-        const result = await api("adminSendReminders", { rowNumbers: chunk, subject, deadline: els.mailDeadline.value, extraMessage: els.mailExtraMessage.value.trim() });
+      for (let i = 0; i < rowNumbers.length; i += 3) {
+        const chunk = rowNumbers.slice(i, i + 3);
+        const result = await api("adminSendReminders", { rowNumbers: chunk, subject, deadline: els.mailDeadline.value, extraMessage: els.mailExtraMessage.value.trim() }, 55000);
         sent += Number(result.sent || 0);
         skipped += Number(result.skipped || 0);
-        loading(button, true, `جاري إرسال ${Math.min(i + chunk.length, rowNumbers.length)} من ${rowNumbers.length}...`);
+        chunk.forEach((rowNumber) => selectedRecipients.delete(rowNumber));
+        const processed = Math.min(i + chunk.length, rowNumbers.length);
+        const progress = Math.round(processed / rowNumbers.length * 100);
+        loading(button, true, `جاري إرسال ${processed} من ${rowNumbers.length}...`);
+        els.mailProgressText.textContent = `تم تأكيد ${processed} من ${rowNumbers.length}`;
+        els.mailProgressPercent.textContent = `${progress}%`;
+        els.mailProgressBar.style.width = `${progress}%`;
       }
       els.mailDialog.close();
       showToast(`تم إرسال ${sent} رسالة بنجاح${skipped ? `، وتجاوز ${skipped}` : ""}.`);
