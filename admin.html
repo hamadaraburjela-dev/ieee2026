@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>لوحة إدارة IEEEXtreme 20.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./admin.css" />
+  </head>
+  <body>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <header class="admin-topbar">
+      <a class="brand" href="./" aria-label="بوابة الفرق"><span class="brand-mark">X</span><span><b>IEEEXtreme <em>20.0</em></b><small>مركز العمليات</small></span></a>
+      <div class="top-actions"><span id="lastUpdated" class="last-updated hidden"></span><button id="refreshButton" class="icon-button hidden" type="button">تحديث البيانات</button><button id="logoutButton" class="outline-button hidden" type="button">خروج آمن</button></div>
+    </header>
+
+    <main>
+      <section id="loginView" class="admin-login">
+        <div class="login-visual">
+          <span class="secure-pill">● منطقة إدارة محمية</span>
+          <h1>رؤية كاملة.<br /><strong>قرار أسرع.</strong></h1>
+          <p>لوحة مركزية لمتابعة جاهزية الفرق وتحديث بيانات المشاركين لحظيًا.</p>
+          <div class="feature-line"><span>إحصائيات مباشرة</span><span>تعديل مركزي</span><span>متوافق مع الجوال</span></div>
+        </div>
+        <form id="adminLoginForm" class="login-card">
+          <div class="card-icon">⌁</div>
+          <p class="kicker">ADMIN ACCESS</p>
+          <h2>دخول المسؤول</h2>
+          <p>أدخل كلمة مرور الإدارة للمتابعة.</p>
+          <label for="adminPassword">كلمة مرور الإدارة</label>
+          <div class="password-field"><input id="adminPassword" type="password" autocomplete="current-password" required /><button id="togglePassword" type="button" aria-label="إظهار كلمة المرور">◉</button></div>
+          <p id="loginError" class="form-error" role="alert"></p>
+          <button class="primary-button" type="submit">فتح لوحة العمليات <span>←</span></button>
+          <small>لا تُحفظ كلمة المرور على الجهاز.</small>
+        </form>
+      </section>
+
+      <section id="dashboardView" class="dashboard hidden">
+        <div class="dashboard-title"><div><p class="kicker">OPERATIONS DASHBOARD</p><h1>جاهزية فرق <strong>IEEEXtreme</strong></h1><p>نظرة شاملة ومحدّثة مباشرة من Google Sheets.</p></div><div class="live-badge"><i></i> اتصال مباشر</div></div>
+        <div id="statsGrid" class="stats-grid"></div>
+        <div class="analytics-grid"><section class="analytics-card"><div class="card-heading"><div><p class="kicker">OVERALL PROGRESS</p><h2>نسبة الجاهزية العامة</h2></div><b id="overallPercent">0%</b></div><div class="big-progress"><span id="overallBar"></span></div><div id="requirementsBreakdown" class="breakdown"></div></section><section class="analytics-card alert-card"><p class="kicker">NEEDS ATTENTION</p><h2>أولوية المتابعة</h2><div id="attentionList" class="attention-list"></div></section></div>
+        <div class="toolbar"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="ابحث برقم الفريق أو اسم العضو..." /></div><select id="statusFilter" aria-label="تصفية الفرق"><option value="all">جميع الفرق</option><option value="complete">مكتملة 100%</option><option value="pending">تحتاج متابعة</option><option value="low">أقل من 50%</option></select><span id="resultsCount" class="results-count"></span></div>
+        <div id="teamsList" class="teams-list"></div>
+      </section>
+    </main>
+
+    <dialog id="memberDialog" class="admin-dialog">
+      <form id="memberForm">
+        <button class="dialog-close" type="button" data-close="memberDialog">×</button><p class="kicker">MEMBER PROFILE</p><h2>تعديل بيانات العضو</h2><p id="memberDialogSubtitle"></p>
+        <div class="form-grid">
+          <label>الاسم بالعربية<input name="fullNameArabic" /></label><label>الاسم بالإنجليزية<input name="fullNameEnglish" dir="ltr" /></label>
+          <label>البريد الإلكتروني<input name="email" type="email" dir="ltr" /></label><label>رقم الجوال<input name="mobile" dir="ltr" /></label>
+          <label>رقم الواتساب<input name="whatsapp" dir="ltr" /></label><label>الجنس<select name="gender"><option value="">غير محدد</option><option>ذكر</option><option>أنثى</option></select></label>
+          <label>مقاس التيشيرت<select name="shirtSize"><option value="">غير محدد</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option></select></label>
+          <label>رسوم عضوية IEEE<select name="membershipPaymentStatus"><option value="">غير مدفوع</option><option value="تم الدفع - جوال باي">تم الدفع - جوال باي</option><option value="تم الدفع - بال باي">تم الدفع - بال باي</option><option value="تم الدفع - فيزا / دفع خاص">تم الدفع - فيزا / دفع خاص</option></select></label>
+          <label>رابط الدفع الجماعي<select name="groupPaymentStatus"><option value="">غير مكتمل</option><option value="تم تعبئته شكرا لك">تم تعبئته شكرًا لك</option></select></label><label>ورقة عدم الممانعة<select name="consentStatus"><option value="">غير مكتملة</option><option value="تم تعبئته شكرا لك">تم تعبئته شكرًا لك</option></select></label>
+        </div>
+        <p id="memberError" class="form-error"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="memberDialog">إلغاء</button><button id="saveMemberButton" class="primary-button" type="submit">حفظ جميع التعديلات</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="teamDialog" class="admin-dialog small-dialog">
+      <form id="teamForm"><button class="dialog-close" type="button" data-close="teamDialog">×</button><p class="kicker">TEAM SETTINGS</p><h2>إعدادات الفريق</h2><p id="teamDialogSubtitle"></p><label>اسم الفريق<input name="teamName" /></label><label>رقم الفريق<input name="newTeamNumber" inputmode="numeric" dir="ltr" /></label><label>الرقم السري للفريق<input name="teamPassword" dir="ltr" /></label><p id="teamError" class="form-error"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="teamDialog">إلغاء</button><button id="saveTeamButton" class="primary-button" type="submit">حفظ إعدادات الفريق</button></div></form>
+    </dialog>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="./config.js"></script><script src="./admin.js"></script>
+  </body>
+</html>
