@@ -1,4 +1,6 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLPyU6YCnHxglAzdAqXd44LTMwUHc9_ivrlgWAmOg1vCS9Dx6lUqliyYsEQNITD6ed/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq9jhagIBox4h5pcpAwF49Azq75r3hYkdKhN1FNA3w4j6wAFVGSzCAUw0ZXwymyAlS/exec";
+
+export const config = { maxDuration: 60 };
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
@@ -9,14 +11,17 @@ export default async function handler(request, response) {
 
   const startedAt = Date.now();
   const controller = new AbortController();
-  const adminActions = ["adminOverview", "adminUpdateMember", "adminUpdateTeam", "adminCreateMember", "adminDeleteMember", "adminSendReminders"];
-  const timeout = setTimeout(() => controller.abort(), 20000);
+  const adminActions = ["adminOverview", "adminUpdateMember", "adminUpdateTeam", "adminCreateMember", "adminDeleteMember", "adminPreviewReminder", "adminSendReminders"];
+  let timeout;
 
   try {
     const payload = typeof request.body === "string" ? JSON.parse(request.body) : request.body;
     if (!payload || !["login", "updateEmail", "updateShirtSize", ...adminActions].includes(payload.action)) {
       return response.status(400).json({ ok: false, message: "الطلب غير صحيح." });
     }
+
+    const timeoutMs = payload.action === "adminSendReminders" ? 50000 : payload.action === "adminPreviewReminder" ? 40000 : 20000;
+    timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     console.info("[team-api] request started", { action: payload.action });
     const upstream = await fetch(APPS_SCRIPT_URL, {
@@ -39,6 +44,6 @@ export default async function handler(request, response) {
       message: timedOut ? "استغرق الاتصال بالشيت وقتًا أطول من المتوقع. حاول مرة أخرى." : "تعذر الوصول إلى بيانات الشيت الآن."
     });
   } finally {
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
   }
 }
