@@ -1,0 +1,54 @@
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f5f9fc;
+  --card: #ffffff;
+  --card-2: #f6fafd;
+  --line: #dce7ef;
+  --text: #132c42;
+  --muted: #5b7083;
+  --cyan: #087fa9;
+  --cyan-2: #0b789d;
+  --green: #0e946d;
+  --amber: #ad6c11;
+  --danger: #c54454;
+  --shadow: 0 20px 55px rgba(23, 62, 94, .11);
+}
+body { background: radial-gradient(circle at 12% 8%, rgba(26, 155, 197, .07), transparent 27rem), radial-gradient(circle at 88% 86%, rgba(123, 94, 201, .045), transparent 30rem), #fff; }
+.noise { opacity: .55; background-image: linear-gradient(rgba(36, 90, 130, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(36, 90, 130, .035) 1px, transparent 1px); }
+.brand-mark { color: #fff; background: linear-gradient(145deg, #006f9b, #28a7cf); border: 0; box-shadow: 0 7px 20px rgba(9, 123, 163, .2); }
+.brand em, .login-copy h1 strong, .dashboard-head h1 strong { color: #087fa9; }
+.eyebrow { color: #087fa9; }
+.eyebrow span { box-shadow: none; }
+.mini-stats span { color: #4d657a; }
+.login-panel, .member-card, .progress-card, .email-dialog { color: var(--text); background: #fff; border-color: var(--line); box-shadow: var(--shadow); }
+.login-panel::before { background: linear-gradient(90deg, #0a87ae, #36b4c6); box-shadow: none; }
+.icon-box, .avatar { color: #087fa9; background: #e8f7fb; border-color: #cce8f0; }
+label { color: #385168; }
+input, .select-wrap select { color: var(--text); background: #fff; border-color: #cddde8; }
+input::placeholder { color: #718497; }
+input:focus, .select-wrap select:focus { border-color: #168db3; box-shadow: 0 0 0 4px rgba(22, 141, 179, .12); }
+.primary-button { color: #fff; background: linear-gradient(110deg, #0782ac, #159fc0); box-shadow: 0 12px 25px rgba(8, 125, 169, .17); }
+.primary-button:hover, .action-link:hover { filter: brightness(.95); }
+.ghost-button, .refresh-button { color: #0c7196; background: #f1f9fc; border-color: #cbe5ef; }
+.demo-button { color: #0a7699; }
+.privacy-note, footer { color: #5f7487; }
+.team-number-card { background: #eaf7fb; border-color: #c6e7f1; }
+.setup-notice { color: #8d5b10; background: #fff6e7; border-color: #f1d8a9; }
+.setup-notice code { color: #75490d; }
+.progress-card { background: linear-gradient(110deg, #fff, #f5fbfd); }
+.progress-track { background: #e6eff5; }
+.progress-track span { background: linear-gradient(90deg, #0c91bb, #19ab86); box-shadow: none; }
+.member-card { box-shadow: 0 13px 35px rgba(25, 62, 92, .08); }
+.email-row, .shirt-size-row { background: #f8fbfd; }
+.email-row span { color: #3b576d; }
+.email-row button { color: #087fa9; }
+.shirt-size-row label span { color: #29495f; }
+.status.done { color: #087b58; }
+.status.done::before { background: #0b9c6e; box-shadow: none; }
+.status.pending { color: #9d6310; }
+.done-message { color: #35765e; }
+.action-link { color: #0a678b; background: #e6f6fb; }
+.action-link.whatsapp { color: #fff; background: #0d9a6b; }
+.payment-info { color: #795729; background: #fff5e5; }
+.payment-info b { color: #5f410f; }
+.email-dialog::backdrop { background: rgba(21, 45, 65, .44); }
