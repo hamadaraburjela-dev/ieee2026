@@ -190,10 +190,17 @@ function adminOverview_(payload) {
   const totalRequirements = members * 3;
   const flatMembers = teams.reduce((all, team) => all.concat(team.members), []);
   const shirtSizes = { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0, '3XL': 0, 'غير محدد': 0 };
+  const shirtSizesByGender = {
+    male: { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0, '3XL': 0, 'غير محدد': 0 },
+    female: { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0, '3XL': 0, 'غير محدد': 0 },
+    unspecified: { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0, '3XL': 0, 'غير محدد': 0 }
+  };
   flatMembers.forEach(member => {
     const size = clean_(member.shirtSize).toUpperCase();
-    if (Object.prototype.hasOwnProperty.call(shirtSizes, size) && size) shirtSizes[size]++;
-    else shirtSizes['غير محدد']++;
+    const sizeKey = Object.prototype.hasOwnProperty.call(shirtSizes, size) && size ? size : 'غير محدد';
+    const genderKey = genderGroup_(member.gender);
+    shirtSizes[sizeKey]++;
+    shirtSizesByGender[genderKey][sizeKey]++;
   });
   const classifications = { 'مبتدئ': 0, 'متوسط': 0, 'محترف': 0, 'غير محدد': 0 };
   teams.forEach(team => {
@@ -223,6 +230,7 @@ function adminOverview_(payload) {
       consentComplete: flatMembers.filter(member => member.consentComplete).length,
       shirtSizeComplete: flatMembers.filter(member => Boolean(clean_(member.shirtSize))).length,
       shirtSizes: shirtSizes,
+      shirtSizesByGender: shirtSizesByGender,
       officialRegisteredTeams: officialRegisteredTeams,
       unofficialTeams: teams.length - officialRegisteredTeams,
       classifications: classifications,
@@ -507,8 +515,13 @@ function table_() {
   const values = sheet.getDataRange().getDisplayValues();
   if (!values.length) throw new Error('ورقة البيانات فارغة.');
   const headers = values[0].map(clean_);
+  const comparableHeaders = headers.map(headerKey_);
   const index = {};
-  Object.keys(HEADERS).forEach(key => index[key] = headers.indexOf(clean_(HEADERS[key])));
+  Object.keys(HEADERS).forEach(key => index[key] = comparableHeaders.indexOf(headerKey_(HEADERS[key])));
+  // مسار احتياطي للأعمدة الثابتة في الشيت عند وجود مسافات خفية أو دمج بالخلايا.
+  if (index.shirtSize < 0 && headers.length >= 12) index.shirtSize = 11; // L
+  if (index.teamClassification < 0 && headers.length >= 13) index.teamClassification = 12; // M
+  if (index.officialRegistration < 0 && headers.length >= 14) index.officialRegistration = 13; // N
   ['teamNumber', 'password', 'fullNameArabic', 'membershipPaymentStatus', 'groupPaymentStatus', 'consentStatus', 'email'].forEach(key => {
     if (index[key] < 0) throw new Error('العمود المطلوب غير موجود: ' + HEADERS[key]);
   });
@@ -522,6 +535,23 @@ function value_(row, table, key) {
 
 function clean_(value) {
   return String(value == null ? '' : value).trim();
+}
+
+function headerKey_(value) {
+  return clean_(value)
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/[ًٌٍَُِّْـ]/g, '')
+    .toLowerCase();
+}
+
+function genderGroup_(value) {
+  const gender = clean_(value).toLowerCase().replace(/[أإآ]/g, 'ا');
+  if (gender === 'ذكر' || gender === 'طالب' || gender === 'male' || gender === 'm') return 'male';
+  if (gender === 'انثى' || gender === 'طالبة' || gender === 'female' || gender === 'f') return 'female';
+  return 'unspecified';
 }
 
 function json_(body) {

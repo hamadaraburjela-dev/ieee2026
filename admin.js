@@ -53,10 +53,19 @@
     const attention = [...overview.teams].filter((t) => t.percent < 100).sort((a, b) => a.percent - b.percent).slice(0, 4);
     els.attention.innerHTML = attention.length ? attention.map((t) => `<button type="button" data-jump-team="${esc(t.teamNumber)}"><span><b>${esc(t.teamName)}</b><small>TEAM ${esc(t.teamNumber)}</small></span><strong>${formatPercent(t.percent)}</strong></button>`).join("") : '<div class="empty-mini">جميع الفرق مكتملة 🎉</div>';
     const shirtSizes = s.shirtSizes || {};
+    const shirtByGender = s.shirtSizesByGender || {};
+    const maleSizes = shirtByGender.male || {};
+    const femaleSizes = shirtByGender.female || {};
+    const unknownSizes = shirtByGender.unspecified || {};
     const shirtOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "غير محدد"];
-    const shirtMax = Math.max(1, ...shirtOrder.map((size) => Number(shirtSizes[size] || 0)));
     els.shirtCompletion.textContent = `${Number(s.shirtSizeComplete || 0)}/${Number(s.members || 0)} مكتمل`;
-    els.shirtSizeStats.innerHTML = shirtOrder.map((size) => { const count = Number(shirtSizes[size] || 0); return `<div class="metric-row"><span>${size}</span><i><em style="width:${count / shirtMax * 100}%"></em></i><b>${count}</b></div>`; }).join("");
+    els.shirtSizeStats.innerHTML = shirtOrder.map((size) => {
+      const total = Number(shirtSizes[size] || 0);
+      const male = Number(maleSizes[size] || 0);
+      const female = Number(femaleSizes[size] || 0);
+      const unspecified = Number(unknownSizes[size] || 0);
+      return `<div class="shirt-size-row"><div class="shirt-size-head"><strong>${size}</strong><b title="الإجمالي">${total}</b></div><div class="shirt-gender-counts"><span class="gender-pill male">ذكر <b>${male}</b></span><span class="gender-pill female">أنثى <b>${female}</b></span>${unspecified ? `<span class="gender-pill unknown">غير محدد <b>${unspecified}</b></span>` : ""}</div></div>`;
+    }).join("");
     const officialCount = Number(s.officialRegisteredTeams || 0);
     const unofficialCount = Number(s.unofficialTeams || 0);
     const officialPercent = s.teams ? Math.round(officialCount / s.teams * 1000) / 10 : 0;
@@ -68,7 +77,7 @@
     const categoryMax = Math.max(1, ...categoryOrder.map((label) => Number(classifications[label] || 0)));
     const classified = Number(s.teams || 0) - Number(classifications["غير محدد"] || 0);
     els.classifiedCount.textContent = `${classified}/${Number(s.teams || 0)} مصنّف`;
-    els.classificationStats.innerHTML = categoryOrder.map((label) => { const count = Number(classifications[label] || 0); return `<div class="metric-row"><span>${label}</span><i><em style="width:${count / categoryMax * 100}%"></em></i><b>${count}</b></div>`; }).join("");
+    els.classificationStats.innerHTML = categoryOrder.map((label) => { const count = Number(classifications[label] || 0); const share = Number(s.teams || 0) ? Math.round(count / Number(s.teams) * 100) : 0; return `<div class="metric-row" title="${share}% من الفرق"><span>${label}</span><i><em style="width:${count / categoryMax * 100}%"></em></i><b>${count}</b></div>`; }).join("");
     const genders = s.genders || {};
     const genderOrder = ["طلاب", "طالبات", "غير محدد"];
     const genderMax = Math.max(1, ...genderOrder.map((label) => Number(genders[label] || 0)));
