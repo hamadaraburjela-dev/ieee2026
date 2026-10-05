@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRLU2Mr2pJp-3HFlAQ16kRiO2y9gpkzn6Af_PQ-G2R3P3QtmRGPoXCNy5JiSTqIj-L/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3XUBzemwR38HZl2i6Y95JvOH7IpMo1zu1rBDEZlSUKAQhungcnvc5eRyoVkPs3yA/exec";
 
 export const config = { maxDuration: 60 };
 
