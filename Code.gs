@@ -3,6 +3,9 @@ const CONSENT_FORM_URL = 'https://forms.gle/FHFomr1HzDBeSiZp6';
 const GROUP_PAYMENT_FORM_URL = 'https://forms.gle/s81kAiUYuZQ4uCMu5';
 const PAYMENT_WHATSAPP = '970592210941';
 const OFFICIAL_PORTAL_URL = 'https://ieee2026.vercel.app/';
+const TARGET_TEAMS = 40;
+const DEFAULT_TEAM_SIZE = 3;
+const TEAM_SIZE_PROPERTY_PREFIX = 'TEAM_TARGET_SIZE_';
 
 const HEADERS = {
   teamNumber: 'رقم الفريق',
@@ -129,6 +132,9 @@ function updateShirtSize_(payload) {
 function adminOverview_(payload) {
   verifyAdmin_(payload.adminPassword);
   const table = table_();
+  const teamSizes = teamSizeOverrides_();
+  const classificationsByTeam = teamLevelValues_(table, 'teamClassification', 12);
+  const registrationsByTeam = teamLevelValues_(table, 'officialRegistration', 13);
   const teamsByNumber = {};
   table.rows.forEach(row => {
     const teamNumber = value_(row, table, 'teamNumber');
@@ -144,8 +150,8 @@ function adminOverview_(payload) {
         members: []
       };
     }
-    const classificationValue = value_(row, table, 'teamClassification');
-    const registrationValue = value_(row, table, 'officialRegistration');
+    const classificationValue = classification_(classificationsByTeam[teamNumber] || value_(row, table, 'teamClassification'));
+    const registrationValue = clean_(registrationsByTeam[teamNumber] || value_(row, table, 'officialRegistration'));
     if (classificationValue) teamsByNumber[teamNumber].teamClassification = classificationValue;
     if (registrationValue) teamsByNumber[teamNumber].officialRegistration = registrationValue;
     const membershipPaymentStatus = value_(row, table, 'membershipPaymentStatus');
@@ -178,6 +184,9 @@ function adminOverview_(payload) {
 
   const teams = Object.keys(teamsByNumber).map(key => {
     const team = teamsByNumber[key];
+    team.targetSize = teamSizes[key] === 2 ? 2 : DEFAULT_TEAM_SIZE;
+    team.openSeats = Math.max(0, team.targetSize - team.members.length);
+    team.extraMembers = Math.max(0, team.members.length - team.targetSize);
     const completed = team.members.reduce((sum, member) => sum + [member.membershipComplete, member.groupPaymentComplete, member.consentComplete].filter(Boolean).length, 0);
     team.completedRequirements = completed;
     team.totalRequirements = team.members.length * 3;
@@ -186,6 +195,9 @@ function adminOverview_(payload) {
   }).sort((a, b) => Number(a.teamNumber) - Number(b.teamNumber) || a.teamNumber.localeCompare(b.teamNumber));
 
   const members = teams.reduce((sum, team) => sum + team.members.length, 0);
+  const twoMemberTeams = teams.filter(team => team.targetSize === 2).length;
+  const targetMembers = TARGET_TEAMS * DEFAULT_TEAM_SIZE - twoMemberTeams;
+  const openSeatsExistingTeams = teams.reduce((sum, team) => sum + team.openSeats, 0);
   const completedRequirements = teams.reduce((sum, team) => sum + team.completedRequirements, 0);
   const totalRequirements = members * 3;
   const flatMembers = teams.reduce((all, team) => all.concat(team.members), []);
@@ -220,7 +232,15 @@ function adminOverview_(payload) {
     teams: teams,
     stats: {
       teams: teams.length,
+      targetTeams: TARGET_TEAMS,
+      remainingTeams: Math.max(0, TARGET_TEAMS - teams.length),
       members: members,
+      targetMembers: targetMembers,
+      remainingMembers: Math.max(0, targetMembers - members),
+      twoMemberTeams: twoMemberTeams,
+      openSeatsExistingTeams: openSeatsExistingTeams,
+      teamsNeedingMembers: teams.filter(team => team.openSeats > 0).length,
+      teamsOverCapacity: teams.filter(team => team.extraMembers > 0).length,
       completedRequirements: completedRequirements,
       totalRequirements: totalRequirements,
       overallPercent: percent_(completedRequirements, totalRequirements),
@@ -273,15 +293,18 @@ function adminUpdateTeam_(payload) {
   const teamName = clean_(updates.teamName);
   const teamClassification = clean_(updates.teamClassification);
   const officialRegistration = clean_(updates.officialRegistration);
+  const targetSize = Number(updates.targetSize || DEFAULT_TEAM_SIZE);
   if (!currentTeamNumber || !newTeamNumber || !newPassword) throw new Error('رقم الفريق والرقم السري مطلوبان.');
   if (['', 'مبتدئ', 'متوسط', 'محترف'].indexOf(teamClassification) === -1) throw new Error('تصنيف الفريق غير صحيح.');
   if (['', 'نعم', 'لا'].indexOf(officialRegistration) === -1) throw new Error('حالة التسجيل الرسمي غير صحيحة.');
+  if (targetSize !== 2 && targetSize !== 3) throw new Error('عدد أعضاء الفريق المستهدف يجب أن يكون 2 أو 3.');
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
     let table = table_();
     const rows = table.rows.filter(row => value_(row, table, 'teamNumber') === currentTeamNumber);
     if (!rows.length) throw new Error('لم يتم العثور على الفريق.');
+    if (rows.length > targetSize && targetSize === 2) throw new Error('الفريق يضم أكثر من عضوين. عدّل عدد الأعضاء أولًا ثم حدد هدفه بعضوين.');
     if (newTeamNumber !== currentTeamNumber && table.rows.some(row => value_(row, table, 'teamNumber') === newTeamNumber)) throw new Error('رقم الفريق الجديد مستخدم لفريق آخر.');
     let teamNameColumn = table.index.teamName;
     if (teamName && teamNameColumn < 0) {
@@ -297,6 +320,10 @@ function adminUpdateTeam_(payload) {
     });
     setTeamLevelValue_(table.sheet, rows, teamClassificationColumn, teamClassification);
     setTeamLevelValue_(table.sheet, rows, officialRegistrationColumn, officialRegistration);
+    const properties = PropertiesService.getScriptProperties();
+    if (newTeamNumber !== currentTeamNumber) properties.deleteProperty(TEAM_SIZE_PROPERTY_PREFIX + currentTeamNumber);
+    if (targetSize === 2) properties.setProperty(TEAM_SIZE_PROPERTY_PREFIX + newTeamNumber, '2');
+    else properties.deleteProperty(TEAM_SIZE_PROPERTY_PREFIX + newTeamNumber);
   } finally { lock.releaseLock(); }
   return json_({ ok: true, data: { teamNumber: newTeamNumber } });
 }
@@ -499,6 +526,45 @@ function setTeamLevelValue_(sheet, rows, columnIndex, value) {
   sheet.getRange(rows[0].rowNumber, columnIndex + 1).setValue(value);
 }
 
+function teamSizeOverrides_() {
+  const properties = PropertiesService.getScriptProperties().getProperties();
+  const overrides = {};
+  Object.keys(properties).forEach(key => {
+    if (key.indexOf(TEAM_SIZE_PROPERTY_PREFIX) === 0 && properties[key] === '2') {
+      overrides[key.slice(TEAM_SIZE_PROPERTY_PREFIX.length)] = 2;
+    }
+  });
+  return overrides;
+}
+
+function teamLevelValues_(table, key, fixedIndex) {
+  const columnIndex = fixedIndex < table.headers.length ? fixedIndex : table.index[key];
+  const result = {};
+  if (columnIndex < 0 || !table.rows.length) return result;
+  // الخلايا المدمجة تخزن القيمة في أول صف فقط، حتى لو ظهرت بصريًا وسط الفريق.
+  table.rows.forEach(row => {
+    const teamNumber = value_(row, table, 'teamNumber');
+    const value = clean_(row.values[columnIndex]);
+    if (teamNumber && value) result[teamNumber] = value;
+  });
+  const merged = table.sheet.getRange(2, columnIndex + 1, table.sheet.getLastRow() - 1, 1).getMergedRanges();
+  merged.forEach(range => {
+    const firstRow = range.getRow();
+    const teamNumber = clean_(table.sheet.getRange(firstRow, table.index.teamNumber + 1).getDisplayValue());
+    const value = clean_(range.getCell(1, 1).getDisplayValue());
+    if (teamNumber && value) result[teamNumber] = value;
+  });
+  return result;
+}
+
+function classification_(value) {
+  const normalized = headerKey_(value).replace(/\s/g, '');
+  if (normalized.indexOf('مبتد') > -1) return 'مبتدئ';
+  if (normalized.indexOf('متوسط') > -1) return 'متوسط';
+  if (normalized.indexOf('محترف') > -1) return 'محترف';
+  return '';
+}
+
 function complete_(value) {
   const text = clean_(value).toLowerCase();
   return Boolean(text) && (text.indexOf('تم تعبئته') > -1 || text.indexOf('تم الدفع') > -1 || text.indexOf('مكتمل') > -1 || text === 'نعم' || text === 'yes' || text === 'paid');
@@ -520,8 +586,10 @@ function table_() {
   Object.keys(HEADERS).forEach(key => index[key] = comparableHeaders.indexOf(headerKey_(HEADERS[key])));
   // مسار احتياطي للأعمدة الثابتة في الشيت عند وجود مسافات خفية أو دمج بالخلايا.
   if (index.shirtSize < 0 && headers.length >= 12) index.shirtSize = 11; // L
-  if (index.teamClassification < 0 && headers.length >= 13) index.teamClassification = 12; // M
-  if (index.officialRegistration < 0 && headers.length >= 14) index.officialRegistration = 13; // N
+  if (headers.length >= 13 && headerKey_(headers[12]).indexOf('تصنيف') > -1) index.teamClassification = 12; // M
+  else if (index.teamClassification < 0 && headers.length >= 13) index.teamClassification = 12;
+  if (headers.length >= 14 && headerKey_(headers[13]).indexOf('سجل') > -1) index.officialRegistration = 13; // N
+  else if (index.officialRegistration < 0 && headers.length >= 14) index.officialRegistration = 13;
   ['teamNumber', 'password', 'fullNameArabic', 'membershipPaymentStatus', 'groupPaymentStatus', 'consentStatus', 'email'].forEach(key => {
     if (index[key] < 0) throw new Error('العمود المطلوب غير موجود: ' + HEADERS[key]);
   });
@@ -539,7 +607,7 @@ function clean_(value) {
 
 function headerKey_(value) {
   return clean_(value)
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u200B-\u200F\u061C\u202A-\u202E\uFEFF]/g, '')
     .replace(/\s+/g, ' ')
     .replace(/[أإآ]/g, 'ا')
     .replace(/ى/g, 'ي')
